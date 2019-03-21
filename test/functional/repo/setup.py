@@ -8,7 +8,7 @@ from setuptools import setup
 
 setup_args = dict(
     name='mahler_test',
-    description='',
+    description='Dummy repo for functional tests',
     long_description='',
     license='GNU GPLv3',
     author=u'Xavier Bouthillier',
