@@ -31,7 +31,7 @@ setup_args = dict(
             'remoteflow = mahler.scheduler.remoteflow'
             ],
         },
-    install_requires=['mahler.core', 'remoteflow'],
+    install_requires=['mahler.core', 'flow'],
     tests_require=tests_require,
     setup_requires=['setuptools', 'pytest-runner>=2.0,<3dev'],
     dependency_links=[
