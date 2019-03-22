@@ -2,14 +2,14 @@
 #       - Test singularity container of mahler_test
 #       - Try registering
 #       - Use mahler_test to test deployment on graham, beluga and cedar using remoteflow.
+import argparse
 
-
-from mahler.client as mahler
+import mahler.client as mahler
 
 from mahler_test.ops import run
 
 
-def main(argv):
+def main(argv=None):
 
     parser = argparse.ArgumentParser(description='Script to register tests')
 
