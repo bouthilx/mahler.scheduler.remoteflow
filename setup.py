@@ -31,11 +31,11 @@ setup_args = dict(
             'remoteflow = mahler.scheduler.remoteflow'
             ],
         },
-    install_requires=['mahler.core', 'flow'],
+    install_requires=['mahler.core', 'flow', 'invoke', 'fabric', 'patchwork'],
     tests_require=tests_require,
     setup_requires=['setuptools', 'pytest-runner>=2.0,<3dev'],
     dependency_links=[
-        "git+https://github.com/bouthilx/remoteflow.git",
+        "git+https://github.com/bouthilx/flow.git",
     ],
     extras_require=dict(test=tests_require),
     # "Zipped eggs don't play nicely with namespace packaging"
