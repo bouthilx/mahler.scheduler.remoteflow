@@ -9,6 +9,7 @@
 
 TODO: Write long description
 """
+import getpass
 import os
 
 import mahler.core
@@ -36,39 +37,107 @@ DEF_CONFIG_FILES_PATHS = [
     ]
 
 
-def build(max_workers, user, hosts, submission_root, init_only, **kwargs):
+def build(max_workers, user, hosts, host_include, host_exclude, rc, submission_root, **kwargs):
+    if host_include or host_exclude:
+        filtered_hosts = dict()
+        for host in hosts.keys():
+            if host_include and host in host_include:
+                filtered_hosts[host] = hosts[host]
+            elif host_exclude and host not in host_exclude:
+                filtered_hosts[host] = hosts[host]
+        hosts = filtered_hosts
+
     return RemoteFlowResources(max_workers=max_workers, user=user, hosts=hosts,
-                               submission_root=submission_root, init_only=init_only)
+                               rc=rc, submission_root=submission_root)
 
 
-def build_parser(parser):
+def build_init_parser(parser):
     """Return the parser that needs to be used for this command"""
-    remoteflow_parser = parser.add_parser('remoteflow', help='remoteflow help')
+    init_parser = parser.add_parser('remoteflow', help='remoteflow help')
+    build_parser(init_parser)
 
-    remoteflow_parser.add_argument(
+
+def build_info_parser(parser):
+    """Return the parser that needs to be used for this command"""
+    info_parser = parser.add_parser('remoteflow', help='remoteflow help')
+
+    info_parser.add_argument(
         '--user', type=str, default=None,
         help='username on the host. For security reason, the password cannot be passed in '
              'commandline. Authentication is only supported with key pairs.')
 
-    remoteflow_parser.add_argument(
-        '--hosts', type=str, nargs='*', default=None,
-        help='hostnames where to deploy tasks. Can only set host names using the commandline '
-             'arguments. Use config file to define host configs.')
+    info_parser.add_argument(
+        '--host-include', type=str, nargs='*', default=[],
+        help='hostnames to select from the config. The others are ignored')
 
-    remoteflow_parser.add_argument(
+    info_parser.add_argument(
+        '--host-exclude', type=str, nargs='*', default=[],
+        help='hostnames to exclude from the config.')
+
+
+def build_run_parser(parser):
+    """Return the parser that needs to be used for this command"""
+    run_parser = parser.add_parser('remoteflow', help='remoteflow help')
+
+    run_parser.add_argument(
+        '--user', type=str, default=None,
+        help='username on the host. For security reason, the password cannot be passed in '
+             'commandline. Authentication is only supported with key pairs.')
+
+    run_parser.add_argument(
+        '--host-include', type=str, nargs='*', default=[],
+        help='hostnames to select from the config. The others are ignored')
+
+    run_parser.add_argument(
+        '--host-exclude', type=str, nargs='*', default=[],
+        help='hostnames to exclude from the config.')
+
+
+    return run_parser
+
+
+def build_submit_parser(parser):
+    """Return the parser that needs to be used for this command"""
+    submit_parser = parser.add_parser('remoteflow', help='remoteflow help')
+    build_parser(submit_parser)
+
+    return submit_parser
+
+
+def build_parser(parser):
+    """Generic arguments for all parsers"""
+
+    parser.add_argument(
+        '--user', type=str, default=None,
+        help='username on the host. For security reason, the password cannot be passed in '
+             'commandline. Authentication is only supported with key pairs.')
+
+    parser.add_argument(
+        '--host-include', type=str, nargs='*', default=[],
+        help='hostnames to select from the config. The others are ignored')
+
+    parser.add_argument(
+        '--host-exclude', type=str, nargs='*', default=[],
+        help='hostnames to exclude from the config.')
+
+    parser.add_argument(
         '--submission-root', type=str, default=None,
         help='Submission root on hosts to save sbatch scripts. Use config file to define '
              'submission roots specific to each host.')
 
-    remoteflow_parser.add_argument(
-        '--max-workers', type=int, default=10,
+    parser.add_argument(
+        '--max-workers', type=int, default=None,
         help='Number of concurrent workers to submit on each host (not total over all host). '
              'Use config file to define max_workers specific to each host.')
 
-    # TODO: Turn into a generic command in mahler.cli.scheduler.
-    remoteflow_parser.add_argument(
-        '--init-only', action='store_true',
-        help='Setup clusters without launching any jobs.')
+    parser.add_argument(
+        '--force-num-tasks', type=int, default=None,
+        help='Force submit more jobs. Usefull if first jobs are creating more.')
+
+    parser.add_argument(
+        '--rc', type=str, default=None,
+        help='RC file used to setup all hosts. '
+             'Use config file to define `rc` specific to each host.')
 
 
 def define_config():
@@ -88,6 +157,10 @@ def define_config():
     config.add_option(
         'prolog', type=str, default='',
         env_var='MAHLER_SCHEDULER_REMOTEFLOW_PROLOG')
+
+    config.add_option(
+        'rc', type=str, default=None,
+        env_var='MAHLER_SCHEDULER_REMOTEFLOW_RC')
 
     config.add_option(
         'max_workers', type=int, default=1, env_var='MAHLER_SCHEDULER_REMOTEFLOW_MAX_WORKERS')
