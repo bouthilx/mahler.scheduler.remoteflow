@@ -10,7 +10,6 @@
 TODO: Write long description
 
 """
-import getpass
 import logging
 import os
 import subprocess
@@ -76,6 +75,7 @@ class RemoteFlowResources(Resources):
         if not isinstance(hosts, dict):
             hosts = {host: {} for host in hosts}
 
+        self.user = user
         self.max_workers = max_workers
         self.prolog = prolog
         self.hosts = hosts
@@ -131,7 +131,7 @@ class RemoteFlowResources(Resources):
     def available(self, squash=True):
         """
         """
-        command = 'squeue -r -o %t -u {user}'.format(user=getpass.getuser())
+        command = 'squeue -r -o %t -u {user}'.format(user=self.user)
         jobs = {}
         max_workers = 0
         result = self.connections.run(command, hide=True, warn=True)
@@ -181,7 +181,7 @@ class RemoteFlowResources(Resources):
             print(out.stderr)
 
     def info(self):
-        command = 'squeue -r -o %t -u {user}'.format(user=getpass.getuser())
+        command = 'squeue -r -o %t -u {user}'.format(user=self.user)
         jobs = {}
         max_workers = 0
         result = self.connections.run(command, hide=True)
